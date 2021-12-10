@@ -1,0 +1,92 @@
+---
+title: "Claire Tham Final Exam R Markdown"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+library(tidyverse)
+library(interactions)
+```
+
+## Read Data
+```{r pressure, echo=FALSE}
+data <- read.csv("exam_data_claire_tham.csv")
+```
+
+##Question 1
+```{r}
+avg_saleschange <- t.test(data$pct_sales_chng)
+avg_saleschange
+```
+
+We can say with 99% confidence that the true mean sales change is between 3.32 to 4.02 with a sample mean of value 3.67 percentage point increase in sales. On average, sales increased
+
+## Question 2 -> 
+Step 1: Sorting the data
+```{r}
+data %>%
+  group_by(type) %>%
+  summarise(count = n()) %>%
+  mutate(percent = round(100 * count / sum(count))) %>%
+arrange(desc(count))
+```
+
+Books are the most common type, so the data set will be compared to Books
+```{r}
+data <- data %>%
+  mutate(type = as.factor(type)) %>%
+  mutate (type = relevel(type, "Books"))
+```
+
+Step 2: Run bi variate regression
+```{r}
+parking_cost_by_type <- lm(parking_cost_change ~ type, data = data)
+summary(parking_cost_by_type)
+```
+
+Based on the results of the regression, we are 99% confident that parking costs for books stores increased by about 13.6%. Similarly, we can can say for the following (clothing, drug store, furniture, gas station, grocery) with 99% confidence level. Compared to book stores, parking costs for clothing stores decreased an additional 5.7% , parking costs for drugstores decreased by about 4.9%, parking costs furniture stores decreased by 8.2%, parking costs for Gas Stations decreased by about 12.5%, parking costs for Grocery stores decreased by 8.6%. However, we are not confident about the statistical results for restaurants. Even though parking costs for restaurants increased by 2.1% compared to parking costs for books, we are not confident about the statistical results for parking costs for restaurants in comparison to parking costs for book stores.
+
+##Question 3
+The effect of distance of transit stops on businesses, controlling for all other variables
+
+```{r}
+model_1 <-lm(pct_sales_chng ~ transit_dist + parking_cost_change + lost_parking + bike_chng, data = data)
+
+summary(model_1)
+```
+
+For every one mile increase in distance to a transit stop, a store's sale decreased by about 22.4%, holding changes to biking and parking availability constant. This result is statistically significant at 99% confident levels.
+
+## Question 4
+```{r}
+model_2 <- lm(pct_sales_chng ~ type + transit_dist + parking_cost_change + lost_parking + bike_chng + type:transit_dist, data = data)
+
+summary(model_2)
+```
+```{r}
+interact_plot(model_2, pred = transit_dist, interval = TRUE, modx = type)
+```
+
+For each additional mile away from a transit stop, there is a 33.1 percentage point decrease in sales for the base case, the book stores.
+For each additional mile away from the transit stop, there is no difference in sales for furniture stalls compared to the base case and it is statistically significant.
+For each additional mile away from the transit stop, there is an additional increase of 1.7% in sales for gas stalls compared to the base case and it is statistically significant
+For each additional mile away from the transit stop, there is an additional increase of 3.2% in sales for grocery stores compared to the base case and it is statistically significant.
+
+However, the other categories of restaurants, drug stores and clothing stores are not statistically significant.
+For each additional mile away from the transit stop, there is an additional decrease of 25.2% in sales for restaurants compared to the base case but it is not statistically significant
+For each additional mile away from the transit stop, there is an additional decrease of 28.7% in sales for clothing stores compared to the base case but it is not statistically significant
+For each additional mile away from the transit stop, there is an additional decrease of 33.9% in sales for drug stores compared to the base case but it is not statistically significant
+```{r}
+\
+```
+
